@@ -183,9 +183,10 @@ int shout_open(shout_t *self)
         return SHOUTERR_CONNECTED;
     if (!self->host || !self->password || !self->port)
         return self->error = SHOUTERR_INSANE;
+#ifdef SHOUT_OGG
     if (self->format == SHOUT_FORMAT_OGG &&  (self->protocol != SHOUT_PROTOCOL_HTTP && self->protocol != SHOUT_PROTOCOL_ROARAUDIO))
         return self->error = SHOUTERR_UNSUPPORTED;
-
+#endif
     return self->error = try_connect(self);
 }
 
@@ -813,9 +814,11 @@ int shout_set_format(shout_t *self, unsigned int format)
         return self->error = SHOUTERR_CONNECTED;
 
     switch (format) {
+#ifdef SHOUT_OGG
         case SHOUT_FORMAT_OGG:
             return shout_set_content_format(self, SHOUT_FORMAT_OGG, SHOUT_USAGE_UNKNOWN, NULL);
         break;
+#endif
         case SHOUT_FORMAT_MP3:
             return shout_set_content_format(self, SHOUT_FORMAT_MP3, SHOUT_USAGE_AUDIO, NULL);
         break;
@@ -878,6 +881,7 @@ static const char *shout_get_mimetype(unsigned int format, unsigned int usage, c
         return NULL;
 
     switch (format) {
+#ifdef SHOUT_OGG
         case SHOUT_FORMAT_OGG:
             if (is_audio(usage)) {
                 return "audio/ogg";
@@ -887,7 +891,7 @@ static const char *shout_get_mimetype(unsigned int format, unsigned int usage, c
                 return "application/ogg";
             }
         break;
-
+#endif
         case SHOUT_FORMAT_MP3:
             /* MP3 *ONLY* support Audio. So all other values are outright invalid */
             if (usage == SHOUT_USAGE_AUDIO) {
@@ -1332,9 +1336,11 @@ static int try_connect(shout_t *self)
     if (self->connection->current_message_state == SHOUT_MSGSTATE_SENDING1 && !self->send) {
         int rc;
         switch (self->format) {
+#ifdef SHOUT_OGG
             case SHOUT_FORMAT_OGG:
                 rc = self->error = shout_open_ogg(self);
                 break;
+#endif
             case SHOUT_FORMAT_MP3:
                 rc = self->error = shout_open_mp3(self);
                 break;
